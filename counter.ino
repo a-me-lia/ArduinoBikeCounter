@@ -57,9 +57,9 @@ double percent=100.0;
 unsigned char b;
 unsigned int peace;
 unsigned long int millisLast = millis();
-unsigned long int millisNow = millis() + 1;
 
-    RunningAverage kmhAvg(50);
+
+    RunningAverage kmhAvg(5);
 
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
@@ -82,11 +82,6 @@ void setup() {
 
   
 }
-
-    
-    
-
-
     
 void loop() { 
      float interval = millis() - millisLast;
@@ -121,9 +116,8 @@ void loop() {
     Serial.println(kmhAvg.getAverage());
 
     if(millis()/500 % 2 ==0){
-
+      //empty
     }
-  
 }
 
 
