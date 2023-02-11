@@ -56,8 +56,10 @@ byte p5[8] = {
 double percent=100.0;
 unsigned char b;
 unsigned int peace;
-unsigned long int millisLast = millis();
 
+unsigned long int millisLast = millis();
+ 
+int addr = 0;
 
     RunningAverage kmhAvg(5);
 
@@ -80,19 +82,33 @@ void setup() {
  
   lcd.begin(16, 2);
 
-  
+   //find next available eeprom space
+       
+    for(int i = 0; i < EEPROM.length(); i++){
+          if(EEPROM.read(i) == 0){
+             addr = i;
+          }
+    }
+
+
 }
-    
+
+
+
 void loop() { 
      float interval = millis() - millisLast;
      float kmhPercent = kmhAvg.getAverage() * 1.3354*1.5;
+
       
        
       if(digitalRead(A0) == HIGH){
+        detectOffState();
+        // only increment when detected sensor turned off
+        // insure accuracy and no overcount when wheel stopped
         rotations++;
         
         interval = millis() - millisLast;
-        delay(100);
+        //delay(100);
         millisLast = millis();
    
         float kmh = 7488/interval;
@@ -105,15 +121,17 @@ void loop() {
         drawBars(kmhPercent);
         }
 
+    interval = millis() - millisLast;
+    Serial.println(interval);
+    Serial.println(kmhAvg.getAverage());
+    
       if(interval > 5000){
-        stoppedProcedure(rotations);
+        stoppedProcedure(rotations, addr);
         kmhAvg.fillValue(0.01, 20);
         lcd.clear();
         }
 
-    interval = millis() - millisLast;
-    Serial.println(interval);
-    Serial.println(kmhAvg.getAverage());
+
 
     if(millis()/500 % 2 ==0){
       //empty
@@ -140,16 +158,19 @@ void printCurrentInfo(long rotations){
 }
 
 
-void stoppedProcedure(float tripMi){
-    int addr = 0;
+void detectOffState(){
+  while(true){
+    if(digitalRead(A0) == LOW){
+      break;
+    }
+  }
+}
+
+void stoppedProcedure(float tripMi, int addr){
+
     float totalMiles = 0;
 
-  //find next available eeprom space
-          for(int i = 0; i < EEPROM.length(); i++){
-          if(EEPROM.read(i) == 0){
-            addr = i;
-          }
-    }
+
         
     while(true){
       for(int i = 0; i < EEPROM.length(); i++){
